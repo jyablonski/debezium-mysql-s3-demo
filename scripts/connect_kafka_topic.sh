@@ -1,0 +1,1 @@
+--bootstrap-server localhost:29092 --topic movies --property schema.registry.url=http://localhost:8081 | jq '.'
