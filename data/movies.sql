@@ -31,8 +31,33 @@ CREATE TABLE `movies`
     PRIMARY KEY (`movie_id`)
 );
 
+DROP TABLE IF EXISTS second_movies;
+CREATE TABLE `second_movies`
+(
+    `movie_id`             int(11)       NOT NULL,
+    `title`                varchar(256)  NOT NULL,
+    `release_year`         int(11)       NOT NULL,
+    `country`              varchar(256)  NOT NULL,
+    `genres`               varchar(256)  NOT NULL,
+    `actors`               varchar(1024) NOT NULL,
+    `directors`            varchar(512)  NOT NULL,
+    `composers`            varchar(256)  NOT NULL,
+    `screenwriters`        varchar(256)  NOT NULL,
+    `cinematographer`      varchar(256)  NOT NULL,
+    `production_companies` varchar(256)  NOT NULL,
+    PRIMARY KEY (`movie_id`)
+);
+
+
 -- Inserting 919 rows into movies
 -- Insert batch #1
+
+INSERT INTO second_movies (movie_id, title, release_year, country, genres, actors, directors, composers, screenwriters,
+                    cinematographer, production_companies)
+VALUES (1, 'Once Upon a Time in the West', 1968, 'Italy', 'Western',
+        'Claudia Cardinale|Charles Bronson|Henry Fonda|Gabriele Ferzetti|Frank Wolff|Al Mulock|Jason Robards|Woody Strode|Jack Elam|Lionel Stander|Paolo Stoppa|Keenan Wynn|Aldo Sambrell',
+        'Sergio Leone', 'Ennio Morricone', 'Sergio Leone|Sergio Donati|Dario Argento|Bernardo Bertolucci',
+        'Tonino Delli Colli', 'Paramount Pictures');
 
 INSERT INTO movies (movie_id, title, release_year, country, genres, actors, directors, composers, screenwriters,
                     cinematographer, production_companies)

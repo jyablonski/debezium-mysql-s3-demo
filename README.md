@@ -144,6 +144,25 @@ Sink Connectors receive schema information in addition to the data for the actua
 
 JSON is easiest to debug while getting started (can download to s3 and see it), parquet might be best long term for snowflake + storage?
 
+# Debezium Quirks
+[Article](https://groups.google.com/g/debezium/c/wIByhyNN9bQ)
+[Debez Article](https://debezium.io/documentation/reference/stable/connectors/mysql.html)
+
+These 2 fkn database properties have nothing to do with the MySQL Database apparently.  They're supposed to have something to do with schema changes + the Kafka Topic. There's also some additional properties, which seems like they're writing stuff as asgard.{table_name} and the transform are to drop that prefix and the asgard.demo.(.*) is to drop the ACTUAL MySQL DB name (demo) as well.
+
+If you have 2+ Debezium Connectors, you *CANNOT* use the same `database.server.id` or `database.server.name` for each table to do CDC on or it'll yell at you and the worker will ,,, die.
+
+```
+"database.server.id": "42",
+"database.server.name": "asgard",
+
+"include.schema.changes": "true",
+"transforms": "unwrap,dropTopicPrefix",
+"transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+"transforms.dropTopicPrefix.type":"org.apache.kafka.connect.transforms.RegexRouter",
+"transforms.dropTopicPrefix.regex":"asgard.demo.(.*)",
+"transforms.dropTopicPrefix.replacement":"$1",
+```
 
 ## Git Clone Stuff
 `git clone --filter=blob:none --sparse  https://github.com/confluentinc/demo-scene`
