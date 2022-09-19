@@ -1,6 +1,8 @@
 # Debezium
 Practice Repo with Debezium which spins up MySQL, Kafka, and a Debezium Client to tap into the Bin Log and perform CDC on all database changes, and writes them to S3 every 60 seconds.
 
+The Example connects to 2 separate Tables, builds 2 separate Kafka Topics, and writes out all changes to 2 separate Kafka S3 Sinks using 1 Source Connector + 1 Sink Connector.  You can adapt this example to include more tables as needed, all while using the same connector.
+
 ## Steps
 1. Run `docker-compose up`.
 2. Run `docker-compose logs -f kafka-connect` to follow logs for debugging purposes as well as to see if Debezium is sending CDC Messages.
@@ -163,6 +165,9 @@ If you have 2+ Debezium Connectors, you *CANNOT* use the same `database.server.i
 "transforms.dropTopicPrefix.regex":"asgard.demo.(.*)",
 "transforms.dropTopicPrefix.replacement":"$1",
 ```
+
+## Docker Port Stuff
+`-p 8080:80`	Maps TCP port 80 in the container to port 8080 on the Docker host.
 
 ## Git Clone Stuff
 `git clone --filter=blob:none --sparse  https://github.com/confluentinc/demo-scene`
