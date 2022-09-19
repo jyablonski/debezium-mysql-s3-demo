@@ -169,6 +169,11 @@ If you have 2+ Debezium Connectors, you *CANNOT* use the same `database.server.i
 ## Docker Port Stuff
 `-p 8080:80`	Maps TCP port 80 in the container to port 8080 on the Docker host.
 
+## Workflow Diagram
+Each MySQL/Postgres Database you have would need its own Debezium Connector, but they can all write to the same Kafka Cluster.
+
+![image](https://user-images.githubusercontent.com/16946556/191134280-5db8097f-3130-48d1-a564-096e64748be3.png)
+
 ## Git Clone Stuff
 `git clone --filter=blob:none --sparse  https://github.com/confluentinc/demo-scene`
     - Filter the Repo with nothing but gitignroe and licencse
