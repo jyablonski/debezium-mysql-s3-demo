@@ -78,6 +78,7 @@ services:
         echo "Installing connector plugins"
         confluent-hub install --no-prompt confluentinc/kafka-connect-s3:5.4.1
         confluent-hub install --no-prompt debezium/debezium-connector-mysql:1.9.3
+        confluent-hub install --no-prompt debezium/debezium-connector-postgresql:1.9.3
         #
         echo "Launching Kafka Connect worker"
         /etc/confluent/docker/run & 
@@ -94,7 +95,19 @@ services:
       - MYSQL_USER=mysqluser
       - MYSQL_PASSWORD=mysqlpw
     volumes:
-      - ${PWD}/data/movies.sql:/docker-entrypoint-initdb.d/z99_dump.sql
+      - ${PWD}/data/movies_mysql.sql:/docker-entrypoint-initdb.d/z99_dump.sql
+
+  postgres:
+    image: postgres:11-alpine
+    container_name: postgres
+    ports:
+     - 5432:5432
+    environment:
+     - POSTGRES_USER=postgres
+     - POSTGRES_PASSWORD=postgres
+     - POSTGRES_DB=postgres
+    volumes:
+      - ${PWD}/data/movies_postgres.sql:/docker-entrypoint-initdb.d/z99_dump.sql
 
   connect-debezium:
     image: debezium/connect:1.2
