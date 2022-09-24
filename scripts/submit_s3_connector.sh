@@ -30,7 +30,6 @@ curl -i -X PUT -H "Accept:application/json" \
     -d '
  {
 		"connector.class": "io.confluent.connect.s3.S3SinkConnector",
-		"key.converter":"org.apache.kafka.connect.storage.StringConverter",
 		"tasks.max": "1",
 		"topics": "second_movies,movies",
 		"s3.region": "us-east-1",
@@ -39,7 +38,7 @@ curl -i -X PUT -H "Accept:application/json" \
         "timezone": "UTC",
 		"flush.size": "65536",
 		"storage.class": "io.confluent.connect.s3.storage.S3Storage",
-		"format.class": "io.confluent.connect.s3.format.json.JsonFormat",
+		"format.class": "io.confluent.connect.s3.format.parquet.ParquetFormat",
 		"schema.generator.class": "io.confluent.connect.storage.hive.schema.DefaultSchemaGenerator",
 		"schema.compatibility": "NONE",
         "partitioner.class": "io.confluent.connect.storage.partitioner.DefaultPartitioner",
