@@ -13,3 +13,11 @@ ksql:
 .PHONY: follow-logs
 follow-logs:
 	@docker-compose logs -f kafka-connect
+
+PHONY: git-rebase
+git-rebase:
+	@git checkout master
+	@git pull
+	@git checkout test-123
+	@git rebase master
+	@git push
