@@ -174,8 +174,30 @@ Each MySQL/Postgres Database you have would need its own Debezium Connector, but
 
 ![image](https://user-images.githubusercontent.com/16946556/191134280-5db8097f-3130-48d1-a564-096e64748be3.png)
 
-## Git Clone Stuff
+## Git Stuff
+
+### Clone
 `git clone --filter=blob:none --sparse  https://github.com/confluentinc/demo-scene`
     - Filter the Repo with nothing but gitignroe and licencse
 `git sparse-checkout add livestreams/july-15`
     - Add the subdirectory you want
+
+### Rebasing
+`git reset --soft HEAD~3` undos the last 3 local commits you made, but keeps the local code as-is.  Effectively allowing you to do a NEW "squash" commit all in one.
+
+`git checkout development`
+`git pull`
+    - this is to make sure that branch is fully up to date locally for you.
+
+`git checkout staging`
+`git pull`
+`git rebase master` - Rebases the CURRENT branch onto master
+`git push --force`
+
+`git checkout production`
+`git pull`
+`git rebase staging`
+`git push --force`
+
+### deleting a branch locally + remotely
+`git push origin --delete test-branch`
