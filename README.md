@@ -201,3 +201,19 @@ Each MySQL/Postgres Database you have would need its own Debezium Connector, but
 
 ### deleting a branch locally + remotely
 `git push origin --delete test-branch`
+
+# NEW WORKFLOW
+1. git pull development
+2. create a new feature branch off of development
+3. add commits locally but don't push until youre ready
+4. when ready, squash and merge the last x commits with `git reset --soft HEAD~3` (if you made 3 commits)
+5. git push
+6. go in github and make your pull request
+7. merge with rebase & merge
+8. when ready, go merge development into staging.
+9. merge with rebase & merge.
+10. when ready, go merge staging into production.
+11. merge with rebase & merge.
+12. then locally do git pull on everything.
+13. and then do git checkout staging and run `git rebase production` and `git push -f`
+14. and then do git checkout development and run `git rebase production` and `git push -f`
