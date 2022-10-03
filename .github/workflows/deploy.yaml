@@ -1,0 +1,39 @@
+name: Push-to-EC2
+
+# Trigger deployment only on push to master branch
+# on:
+#   push:
+#     branches: [master, staging, development]
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  dev-deploy:
+    if: github.ref == "refs/heads/master" && ${{ github.event.pull_request.merged }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@2.3.4
+    - name: deploy
+      run: |
+        echo hello world dev
+  stg-deploy:
+    if: github.ref == "refs/heads/staging" && ${{ github.event.pull_request.merged }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@2.3.4
+    - name: deploy
+      run: |
+        echo hello world staging
+  prod-deploy:
+    if: github.ref == "refs/heads/production" && ${{ github.event.pull_request.merged }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@2.3.4
+    - name: deploy
+      run: |
+        echo hello world prod
