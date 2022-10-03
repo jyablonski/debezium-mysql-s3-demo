@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: checkout repo
-      uses: actions/checkout@2.3.4
+      uses: actions/checkout@v2.3.4
     - name: deploy
       run: |
         echo hello world dev
@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: checkout repo
-      uses: actions/checkout@2.3.4
+      uses: actions/checkout@v2.3.4
     - name: deploy
       run: |
         echo hello world staging
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: checkout repo
-      uses: actions/checkout@2.3.4
+      uses: actions/checkout@v2.3.4
     - name: deploy
       run: |
         echo hello world prod
