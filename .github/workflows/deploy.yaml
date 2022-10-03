@@ -11,7 +11,7 @@ on:
 
 jobs:
   dev-deploy:
-    if: github.ref == 'refs/heads/master' && ${{ github.event.pull_request.merged }}
+    if: github.ref == 'refs/heads/master' # && ${{ github.event.pull_request.merged }}
     runs-on: ubuntu-latest
     steps:
     - name: checkout repo
@@ -20,7 +20,7 @@ jobs:
       run: |
         echo hello world dev
   stg-deploy:
-    if: github.ref == 'refs/heads/staging' && ${{ github.event.pull_request.merged }}
+    if: github.ref == 'refs/heads/staging' # && ${{ github.event.pull_request.merged }}
     runs-on: ubuntu-latest
     steps:
     - name: checkout repo
@@ -29,7 +29,7 @@ jobs:
       run: |
         echo hello world staging
   prod-deploy:
-    if: github.ref == 'refs/heads/production' && ${{ github.event.pull_request.merged }}
+    if: github.ref == 'refs/heads/production' # && ${{ github.event.pull_request.merged }}
     runs-on: ubuntu-latest
     steps:
     - name: checkout repo
