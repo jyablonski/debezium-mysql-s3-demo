@@ -5,16 +5,12 @@ name: Push-to-EC2
 #   push:
 #     branches: [master, staging, development]
 on:
-  push:
-    branches: [master, staging]
   pull_request:
-    types:
-      - closed
-    branches: [production]
+    types: [ closed ]
 
 jobs:
   dev-deploy:
-    if: github.ref == 'refs/heads/master' && github.event.action == 'closed'
+    if: github.ref == 'refs/heads/master' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
     - name: checkout repo
@@ -23,7 +19,7 @@ jobs:
       run: |
         echo hello world dev
   stg-deploy:
-    if: github.ref == 'refs/heads/staging' && github.event.action == 'closed'
+    if: github.ref == 'refs/heads/staging' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
     - name: checkout repo
@@ -32,7 +28,7 @@ jobs:
       run: |
         echo hello world staging
   prod-deploy:
-    if: github.ref == 'refs/heads/production' && github.event.action == 'closed'
+    if: github.ref == 'refs/heads/production' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
     - name: checkout repo
