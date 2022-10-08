@@ -2,3 +2,4 @@
 aws_credentials
 jacobs_notes.md
 .vscode
+*.ipynb
