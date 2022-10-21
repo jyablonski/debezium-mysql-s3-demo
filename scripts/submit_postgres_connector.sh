@@ -16,6 +16,8 @@ curl -i -X PUT -H "Content-Type:application/json" \
         "include.schema.changes": "true",
         "transforms": "unwrap,dropTopicPrefix",
         "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+        "transforms.unwrap.delete.handling.mode": "rewrite",
+        "transforms.unwrap.drop.tombstones": "false",
         "transforms.dropTopicPrefix.type":"org.apache.kafka.connect.transforms.RegexRouter",
         "transforms.dropTopicPrefix.regex":"asgard_postgres.dbz_schema.(.*)",
         "transforms.dropTopicPrefix.replacement":"$1",

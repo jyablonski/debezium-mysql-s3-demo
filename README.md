@@ -217,3 +217,14 @@ Each MySQL/Postgres Database you have would need its own Debezium Connector, but
 12. then locally do git pull on everything.
 13. and then do git checkout staging and run `git rebase production` and `git push -f`
 14. and then do git checkout development and run `git rebase production` and `git push -f`
+
+
+## Handling Deletes
+Adding the following properties allows you to track deletes - it will add a `__deleted` column to every record which is set to true or false depending on whether the event represents a delete operation or not.
+
+```
+"transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+"transforms.unwrap.delete.handling.mode": "rewrite",
+"drop.tombstones": "false"
+```
+`drop.tombstones` - keeps records for DELETE operations in the event stream.
