@@ -3,3 +3,4 @@ aws_credentials
 jacobs_notes.md
 .vscode
 *.ipynb
+scripts/submit_redshift_sinkz.sh
