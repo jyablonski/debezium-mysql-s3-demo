@@ -14,11 +14,15 @@ curl -i -X PUT -H "Accept:application/json" \
         "aws.redshift.port": "5439",
         "aws.redshift.database": "dev",
         "aws.redshift.user": "jacob",
-        "aws.redshift.password": "zzzz",
+        "aws.redshift.password": "zzz",
         "auto.create": "true",
         "auto.evolve": "true",
         "pk.mode": "record_key",
         "delete.enabled": "true",
-        "table.name.format": "dbz.${topic}"
+        "table.name.format": "dbz.${topic}",
+        "insert.mode": "insert",
+        "transforms": "AddMetadata",
+        "transforms.AddMetadata.type": "org.apache.kafka.connect.transforms.InsertField$Value",
+        "transforms.AddMetadata.offset.field": "_offset"
 	}
 '

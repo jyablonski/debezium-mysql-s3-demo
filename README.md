@@ -237,3 +237,32 @@ adding a new column automatically works
 
 DELETING a column fucked shit up bc it sets everything to null and that's how it defines a "deleted" column or something, but in redshift if it's a data type of like int - that can't be null so it errored out.
     - this likely doesnt matter bc when would be deleting a lot of cols?
+
+It adds a Primary key index into the schema as well for each table.
+
+![image](https://user-images.githubusercontent.com/16946556/197405330-a97f80a0-85e8-4f58-ae15-17a431a5460e.png)
+
+
+![image](https://user-images.githubusercontent.com/16946556/197406047-5d09728a-5af6-4999-8c5f-a12264cdf868.png)
+    - i can get inserts working, and deletes working, but updates on exisitng records show up as new records.
+    - can distinguish based on _offset but this is still not ideal.
+    - `insert.mode=update` worked, but then you cant do inserts.
+    - i saw some ppl creating 3 redshift sinks for insert, update, and insert with delete.enabled=true but that's sounds meh
+
+adding a new column doesn't get reflected in redshift until a new insert operation is executed.
+
+you'd have to do something like below on every single table to get the most recent record.
+
+```
+with latest_records as (
+    select
+        id,
+        max(_offset) as _offset
+    from table
+    group by id
+)
+
+select *
+from table
+inner join latest_records using (id, _offset)
+```
