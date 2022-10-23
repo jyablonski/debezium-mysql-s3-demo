@@ -228,3 +228,12 @@ Adding the following properties allows you to track deletes - it will add a `__d
 "drop.tombstones": "false"
 ```
 `drop.tombstones` - keeps records for DELETE operations in the event stream.
+
+
+# Redshift Sink
+deletes work as-is.
+
+adding a new column automatically works
+
+DELETING a column fucked shit up bc it sets everything to null and that's how it defines a "deleted" column or something, but in redshift if it's a data type of like int - that can't be null so it errored out.
+    - this likely doesnt matter bc when would be deleting a lot of cols?

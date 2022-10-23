@@ -4,7 +4,9 @@ curl -i -X PUT -H "Accept:application/json" \
     -H  "Content-Type:application/json" http://localhost:8083/connectors/jyablonski-kafka-redshift-sink-postgres/config \
     -d '
  {
-        "confluent.topic.bootstrap.servers": "localhost:9092",
+        "confluent.topic.bootstrap.servers": "broker:29092",
+        "confluent.license.topic.replication.factor": "1",
+        "confluent.topic.replication.factor": "1",
 		"connector.class": "io.confluent.connect.aws.redshift.RedshiftSinkConnector",
 		"tasks.max": "1",
 		"topics": "second_movies,movies",

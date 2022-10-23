@@ -26,6 +26,8 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_TOPIC_REPLICATION_FACTOR: 1
 
   schema-registry:
     image: confluentinc/cp-schema-registry:5.4.1
@@ -67,6 +69,7 @@ services:
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
       CONNECT_PLUGIN_PATH: '/usr/share/java,/usr/share/confluent-hub-components/,/connectors/'
+      CONNECT_CONFLUENT_TOPIC_REPLICATION_FACTOR: "1"
     volumes:
       - $PWD/connectors:/connectors
       - $PWD/aws_credentials:/root/.aws/credentials
@@ -79,6 +82,7 @@ services:
         confluent-hub install --no-prompt confluentinc/kafka-connect-s3:5.4.1
         confluent-hub install --no-prompt debezium/debezium-connector-mysql:1.9.3
         confluent-hub install --no-prompt debezium/debezium-connector-postgresql:1.9.3
+        confluent-hub install --no-prompt confluentinc/kafka-connect-aws-redshift:1.2.1
         #
         echo "Launching Kafka Connect worker"
         /etc/confluent/docker/run & 
