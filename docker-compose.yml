@@ -83,6 +83,7 @@ services:
         confluent-hub install --no-prompt debezium/debezium-connector-mysql:1.9.3
         confluent-hub install --no-prompt debezium/debezium-connector-postgresql:1.9.3
         confluent-hub install --no-prompt confluentinc/kafka-connect-aws-redshift:1.2.1
+        confluent-hub install --no-prompt snowflakeinc/snowflake-kafka-connector:1.8.1
         #
         echo "Launching Kafka Connect worker"
         /etc/confluent/docker/run & 

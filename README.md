@@ -266,3 +266,31 @@ select *
 from table
 inner join latest_records using (id, _offset)
 ```
+
+# snowflake sink
+## First iteration
+worked but shit shows up as 2 json metadata columns instead of the normal table data columns.  this is fkn useless and involves additional transformations to do anything with the data.  snowflake offers features for this but you're also paying for those compute resources and it introduces more complexity.
+
+S3 sink with snowpipe set up it is bc you're still doing the same thing except the data actually gets loaded directly into the source tables which is the only reason we're streaming in the first place.
+
+```
+ {
+		"connector.class": "com.snowflake.kafka.connector.SnowflakeSinkConnector",
+		"tasks.max": "1",
+		"topics": "second_movies,movies",
+        "snowflake.topic2table.map": "movies:movies,second_movies:second_movies",
+        "buffer.count.records":"10000",
+        "buffer.flush.time":"60",
+        "buffer.size.bytes":"5000000",
+        "snowflake.url.name":"yyy",
+        "snowflake.user.name":"aaa",
+        "snowflake.private.key":"zz",
+        "snowflake.private.key.passphrase":"yyyy",
+        "snowflake.database.name":"kafka_db",
+        "snowflake.schema.name":"kafka_schema",
+        "transforms": "AddMetadata",
+        "transforms.AddMetadata.type": "org.apache.kafka.connect.transforms.InsertField$Value",
+        "transforms.AddMetadata.offset.field": "_offset"
+	}
+```
+![image](https://user-images.githubusercontent.com/16946556/200147474-fd5ed40e-deb0-4038-80d0-123e00720e53.png)
