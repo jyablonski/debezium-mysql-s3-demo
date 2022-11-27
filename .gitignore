@@ -7,3 +7,4 @@ scripts/submit_redshift_sinkz.sh
 scripts/snowflake_sinkz.sh
 *.p8
 *.pub
+*_snowpipe.sql

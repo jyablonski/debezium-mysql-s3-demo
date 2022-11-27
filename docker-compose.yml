@@ -70,9 +70,11 @@ services:
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
       CONNECT_PLUGIN_PATH: '/usr/share/java,/usr/share/confluent-hub-components/,/connectors/'
       CONNECT_CONFLUENT_TOPIC_REPLICATION_FACTOR: "1"
+      # CLASSPATH: /usr/share/java/kafka/
     volumes:
       - $PWD/connectors:/connectors
       - $PWD/aws_credentials:/root/.aws/credentials
+      - $PWD/connectors/snowflake-jdbc-3.13.24-javadoc.jar:/usr/share/java/kafka-connect-jdbc/jars/
     command: 
       - bash 
       - -c 
@@ -84,6 +86,7 @@ services:
         confluent-hub install --no-prompt debezium/debezium-connector-postgresql:1.9.3
         confluent-hub install --no-prompt confluentinc/kafka-connect-aws-redshift:1.2.1
         confluent-hub install --no-prompt snowflakeinc/snowflake-kafka-connector:1.8.1
+        confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:10.6.0
         #
         echo "Launching Kafka Connect worker"
         /etc/confluent/docker/run & 

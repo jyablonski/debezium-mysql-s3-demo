@@ -294,3 +294,13 @@ S3 sink with snowpipe set up it is bc you're still doing the same thing except t
 	}
 ```
 ![image](https://user-images.githubusercontent.com/16946556/200147474-fd5ed40e-deb0-4038-80d0-123e00720e53.png)
+
+# Snowflake JDBC Sink
+- [Stackoverflow 1](https://stackoverflow.com/questions/69890973/kafka-jdbc-sink-connector-cant-find-tables-in-snowflake)
+- [Classpath Link](https://github.com/confluentinc/demo-scene/blob/ab824ce9f97952125518487a779753cb2549bac7/ibm-demo/docker-compose.yml)
+- [Classpath link 2](https://github.com/confluentinc/demo-scene/blob/master/connect-jdbc/docker-compose.yml)
+
+# tombstones
+- A tombstone record is created after a record is deleted, and it keeps the primary key and sets all other columns to null.
+- You can set delete.handling.mode = rewrite which adds a _deleted column to the tables, and when that record gets deleted an "update" event happens which sets this _deleted column to true so you can filter it out downstream later on.
+- If you leave tombstones on it breaks shit because certain columns aren't supposed to be null or maybe it's the schema registry that breaks it, i dont know.  so i have to set drop tombstones to true.
