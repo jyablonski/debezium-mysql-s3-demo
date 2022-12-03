@@ -8,3 +8,4 @@ scripts/snowflake_sinkz.sh
 *.p8
 *.pub
 *_snowpipe.sql
+kafka_user/

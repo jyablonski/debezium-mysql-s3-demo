@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# JSON
 curl -i -X PUT -H "Accept:application/json" \
     -H  "Content-Type:application/json" http://localhost:8083/connectors/jyablonski-kafka-s3-sink-mysql/config \
     -d '
@@ -49,6 +50,7 @@ curl -i -X PUT -H "Accept:application/json" \
 	}
 '
 
+# PARQUET
 curl -i -X PUT -H "Accept:application/json" \
     -H  "Content-Type:application/json" http://localhost:8083/connectors/jyablonski-kafka-s3-sink-postgres/config \
     -d '

@@ -10,7 +10,7 @@ curl -i -X PUT -H "Accept:application/json" \
 		"connector.class": "io.confluent.connect.aws.redshift.RedshiftSinkConnector",
 		"tasks.max": "1",
 		"topics": "second_movies,movies",
-        "aws.redshift.domain": "bigcluster",
+        "aws.redshift.domain": "jyablonski-test-cluster.c0d1rid7802w.us-east-1.redshift.amazonaws.com",
         "aws.redshift.port": "5439",
         "aws.redshift.database": "dev",
         "aws.redshift.user": "jacob",

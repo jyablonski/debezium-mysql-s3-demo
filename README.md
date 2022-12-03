@@ -267,12 +267,13 @@ from table
 inner join latest_records using (id, _offset)
 ```
 
-# snowflake sink
+# Snowflake Sink
 ## First iteration
 worked but shit shows up as 2 json metadata columns instead of the normal table data columns.  this is fkn useless and involves additional transformations to do anything with the data.  snowflake offers features for this but you're also paying for those compute resources and it introduces more complexity.
 
 S3 sink with snowpipe set up it is bc you're still doing the same thing except the data actually gets loaded directly into the source tables which is the only reason we're streaming in the first place.
 
+have to set default role + default warehouse for this kafka_user.  also, you have to use 
 ```
  {
 		"connector.class": "com.snowflake.kafka.connector.SnowflakeSinkConnector",
@@ -304,3 +305,25 @@ S3 sink with snowpipe set up it is bc you're still doing the same thing except t
 - A tombstone record is created after a record is deleted, and it keeps the primary key and sets all other columns to null.
 - You can set delete.handling.mode = rewrite which adds a _deleted column to the tables, and when that record gets deleted an "update" event happens which sets this _deleted column to true so you can filter it out downstream later on.
 - If you leave tombstones on it breaks shit because certain columns aren't supposed to be null or maybe it's the schema registry that breaks it, i dont know.  so i have to set drop tombstones to true.
+
+
+## IM SO CLOSE
+[Article 1](https://github.com/confluentinc/demo-scene/blob/master/oracle-and-kafka/jdbc-driver.adoc)
+[Vid](https://www.youtube.com/watch?v=vI_L9irU9Pc)
+[Stackoverflow of Connector](https://stackoverflow.com/questions/69890973/kafka-jdbc-sink-connector-cant-find-tables-in-snowflake)
+
+# new strat
+the snowflake sink works but setting up streams + tasks seems like a fuckton of work to figure out
+
+how about using snowpipe for a finite amount of tables, 1 stage + 1 pipe for each topic, dump that data into a snowflake staging table, and then from there create a task to merge that data onto a target table where you do `MERGE` and delete records if `__deleted=true`.
+
+also allows us to skip the schema registry.  just use json in postgres/mysql connectors and in the s3 sink.  snowpipe that json data into staging tables.  tasks to pump that data out of json into target tables in `production` database and `production` schema where users have read access to.
+
+
+# errors i left off at
+`Caused by: io.confluent.connect.jdbc.sink.TableAlterOrCreateException: Table "second_movies" is missing and auto-creation is disabled`
+`INFO Using Generic dialect TABLE "second_movies" absent (io.confluent.connect.jdbc.dialect.GenericDatabaseDialect)`
+`Caused by: io.confluent.connect.jdbc.sink.TableAlterOrCreateException: Table "kafka_db"."kafka_schema"."second_movies" is missing and auto-creation is disabl`
+
+basically auto.create fails bc this sink doesnt have official snowflake compatibility.
+insert only w/ no auto.create doesnt work either because of quote issue that i couldnt figure out.

@@ -70,11 +70,13 @@ services:
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
       CONNECT_PLUGIN_PATH: '/usr/share/java,/usr/share/confluent-hub-components/,/connectors/'
       CONNECT_CONFLUENT_TOPIC_REPLICATION_FACTOR: "1"
-      # CLASSPATH: /usr/share/java/kafka/
+      # CLASSPATH: /usr/share/java/kafka-connect-jdbc/*
+        # jdbc driver has to be in the same place where connector gets installed (usr/share/confluent-hub-components/conluentinc-kafka-connect-jdbc
+        # dont need classpath if you do the above ^, if you dont do above then you need to provide classpath
     volumes:
       - $PWD/connectors:/connectors
       - $PWD/aws_credentials:/root/.aws/credentials
-      - $PWD/connectors/snowflake-jdbc-3.13.24-javadoc.jar:/usr/share/java/kafka-connect-jdbc/jars/
+      - $PWD/connectors/snowflake-jdbc-3.13.25.jar:/usr/share/confluent-hub-components/confluentinc-kafka-connect-jdbc/lib/snowflake-jdbc-3.13.25.jar
     command: 
       - bash 
       - -c 
