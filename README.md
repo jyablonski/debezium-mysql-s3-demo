@@ -174,60 +174,19 @@ Each MySQL/Postgres Database you have would need its own Debezium Connector, but
 
 ![image](https://user-images.githubusercontent.com/16946556/191134280-5db8097f-3130-48d1-a564-096e64748be3.png)
 
-## Git Stuff
+# Tombstones
+- A tombstone record is created after a record is deleted, and it keeps the primary key and sets all other columns to null.
+- You can set `delete.handling.mode = rewrite` which adds a `__deleted` column to the tables, and when that record gets deleted an "update" event happens which sets this _deleted column to true so you can filter it out downstream later on.
+- If you leave tombstones on it breaks shit because certain columns aren't supposed to be null or maybe it's the schema registry that breaks it, i dont know.  so i have to set drop tombstones to true.
 
-### Clone
-`git clone --filter=blob:none --sparse  https://github.com/confluentinc/demo-scene`
-    - Filter the Repo with nothing but gitignroe and licencse
-`git sparse-checkout add livestreams/july-15`
-    - Add the subdirectory you want
-
-### Rebasing
-`git reset --soft HEAD~3` undos the last 3 local commits you made, but keeps the local code as-is.  Effectively allowing you to do a NEW "squash" commit all in one.
-
-`git checkout development`
-`git pull`
-    - this is to make sure that branch is fully up to date locally for you.
-
-`git checkout staging`
-`git pull`
-`git rebase master` - Rebases the CURRENT branch onto master
-`git push --force`
-
-`git checkout production`
-`git pull`
-`git rebase staging`
-`git push --force`
-
-### deleting a branch locally + remotely
-`git push origin --delete test-branch`
-
-# NEW WORKFLOW
-1. git pull development
-2. create a new feature branch off of development
-3. add commits locally but don't push until youre ready
-4. when ready, squash and merge the last x commits with `git reset --soft HEAD~3` (if you made 3 commits)
-5. git push
-6. go in github and make your pull request
-7. merge with rebase & merge
-8. when ready, go merge development into staging.
-9. merge with rebase & merge.
-10. when ready, go merge staging into production.
-11. merge with rebase & merge.
-12. then locally do git pull on everything.
-13. and then do git checkout staging and run `git rebase production` and `git push -f`
-14. and then do git checkout development and run `git rebase production` and `git push -f`
-
-
-## Handling Deletes
 Adding the following properties allows you to track deletes - it will add a `__deleted` column to every record which is set to true or false depending on whether the event represents a delete operation or not.
 
 ```
 "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
 "transforms.unwrap.delete.handling.mode": "rewrite",
-"drop.tombstones": "false"
+"drop.tombstones": "true"
 ```
-`drop.tombstones` - keeps records for DELETE operations in the event stream.
+`drop.tombstones` - keeps records for DELETE operations in the event stream.  I had to default to true otherwise errors yeet.
 
 
 # Redshift Sink
@@ -267,11 +226,10 @@ from table
 inner join latest_records using (id, _offset)
 ```
 
-# Snowflake Sink
-## First iteration
-worked but shit shows up as 2 json metadata columns instead of the normal table data columns.  this is fkn useless and involves additional transformations to do anything with the data.  snowflake offers features for this but you're also paying for those compute resources and it introduces more complexity.
+# Snowflake Kafka Sink
+Worked but shit shows up as 2 JSON metadata columns instead of the normal table data columns.  this involves additional transformations to do anything with the data.  Snowflake offers features for this like Streams + Tasks but you're also paying for those compute resources and it introduces more complexity.
 
-S3 sink with snowpipe set up it is bc you're still doing the same thing except the data actually gets loaded directly into the source tables which is the only reason we're streaming in the first place.
+S3 sink with Snowpipe set up is just about the same thing except the data actually gets loaded directly into the source tables which is the only reason we're streaming in the first place.
 
 have to set default role + default warehouse for this kafka_user.  also, you have to use 
 ```
@@ -301,29 +259,31 @@ have to set default role + default warehouse for this kafka_user.  also, you hav
 - [Classpath Link](https://github.com/confluentinc/demo-scene/blob/ab824ce9f97952125518487a779753cb2549bac7/ibm-demo/docker-compose.yml)
 - [Classpath link 2](https://github.com/confluentinc/demo-scene/blob/master/connect-jdbc/docker-compose.yml)
 
-# tombstones
-- A tombstone record is created after a record is deleted, and it keeps the primary key and sets all other columns to null.
-- You can set delete.handling.mode = rewrite which adds a _deleted column to the tables, and when that record gets deleted an "update" event happens which sets this _deleted column to true so you can filter it out downstream later on.
-- If you leave tombstones on it breaks shit because certain columns aren't supposed to be null or maybe it's the schema registry that breaks it, i dont know.  so i have to set drop tombstones to true.
-
-
 ## IM SO CLOSE
 [Article 1](https://github.com/confluentinc/demo-scene/blob/master/oracle-and-kafka/jdbc-driver.adoc)
 [Vid](https://www.youtube.com/watch?v=vI_L9irU9Pc)
 [Stackoverflow of Connector](https://stackoverflow.com/questions/69890973/kafka-jdbc-sink-connector-cant-find-tables-in-snowflake)
 
-# new strat
-the snowflake sink works but setting up streams + tasks seems like a fuckton of work to figure out
+![image](https://user-images.githubusercontent.com/16946556/208001421-c09fa05a-ffe0-42c9-bbfa-12ccb4cecf52.png)
 
-how about using snowpipe for a finite amount of tables, 1 stage + 1 pipe for each topic, dump that data into a snowflake staging table, and then from there create a task to merge that data onto a target table where you do `MERGE` and delete records if `__deleted=true`.
+![image](https://user-images.githubusercontent.com/16946556/208002405-26b11e92-3b8a-4f1a-95af-e2951f829baf.png)
 
-also allows us to skip the schema registry.  just use json in postgres/mysql connectors and in the s3 sink.  snowpipe that json data into staging tables.  tasks to pump that data out of json into target tables in `production` database and `production` schema where users have read access to.
+JDBC Sink works but it's painfully slow bc it's doing a million fkn merges at once, had to give ALL PRIVILEGES bc select + insert wasn't enough.  Still have to use OracleDatabaseDialect bc it's the only one that's compatible.  Things also got fkd up if there were 2 different tables with the same name but in different databses - it didnt care what schema + db you throw in the JDBC parameters.  
 
+Don't think it's a realistic solution.
 
-# errors i left off at
+## JDBC Errors
 `Caused by: io.confluent.connect.jdbc.sink.TableAlterOrCreateException: Table "second_movies" is missing and auto-creation is disabled`
 `INFO Using Generic dialect TABLE "second_movies" absent (io.confluent.connect.jdbc.dialect.GenericDatabaseDialect)`
 `Caused by: io.confluent.connect.jdbc.sink.TableAlterOrCreateException: Table "kafka_db"."kafka_schema"."second_movies" is missing and auto-creation is disabl`
 
 basically auto.create fails bc this sink doesnt have official snowflake compatibility.
 insert only w/ no auto.create doesnt work either because of quote issue that i couldnt figure out.
+
+
+`Cannot ALTER TABLE "SECOND_MOVIES" to add missing field SinkRecordField{schema=Schema{STRING}, name='title', isPrimaryKey=false}, as the field is not optional and does not have a default value`
+
+# Tombstones
+- A tombstone record is created after a record is deleted, and it keeps the primary key and sets all other columns to null.
+- You can set `delete.handling.mode = rewrite` which adds a _deleted column to the tables, and when that record gets deleted an "update" event happens which sets this _deleted column to true so you can filter it out downstream later on.
+- If you leave tombstones on it breaks shit because certain columns aren't supposed to be null or maybe it's the schema registry that breaks it, i dont know.  so i have to set drop tombstones to true.
