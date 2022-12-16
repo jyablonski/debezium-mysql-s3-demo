@@ -89,6 +89,7 @@ services:
         confluent-hub install --no-prompt confluentinc/kafka-connect-aws-redshift:1.2.1
         confluent-hub install --no-prompt snowflakeinc/snowflake-kafka-connector:1.8.1
         confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:10.6.0
+        confluent-hub install --no-prompt jcustenborder/kafka-connect-transform-common:0.1.0.58
         #
         echo "Launching Kafka Connect worker"
         /etc/confluent/docker/run & 
