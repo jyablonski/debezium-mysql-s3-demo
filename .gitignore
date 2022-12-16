@@ -2,3 +2,10 @@
 aws_credentials
 jacobs_notes.md
 .vscode
+*.ipynb
+scripts/submit_redshift_sinkz.sh
+scripts/snowflake_sinkz.sh
+*.p8
+*.pub
+*_snowpipe.sql
+kafka_user/

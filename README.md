@@ -174,46 +174,116 @@ Each MySQL/Postgres Database you have would need its own Debezium Connector, but
 
 ![image](https://user-images.githubusercontent.com/16946556/191134280-5db8097f-3130-48d1-a564-096e64748be3.png)
 
-## Git Stuff
+# Tombstones
+- A tombstone record is created after a record is deleted, and it keeps the primary key and sets all other columns to null.
+- You can set `delete.handling.mode = rewrite` which adds a `__deleted` column to the tables, and when that record gets deleted an "update" event happens which sets this _deleted column to true so you can filter it out downstream later on.
+- If you leave tombstones on it breaks shit because certain columns aren't supposed to be null or maybe it's the schema registry that breaks it, i dont know.  so i have to set drop tombstones to true.
 
-### Clone
-`git clone --filter=blob:none --sparse  https://github.com/confluentinc/demo-scene`
-    - Filter the Repo with nothing but gitignroe and licencse
-`git sparse-checkout add livestreams/july-15`
-    - Add the subdirectory you want
+Adding the following properties allows you to track deletes - it will add a `__deleted` column to every record which is set to true or false depending on whether the event represents a delete operation or not.
 
-### Rebasing
-`git reset --soft HEAD~3` undos the last 3 local commits you made, but keeps the local code as-is.  Effectively allowing you to do a NEW "squash" commit all in one.
+```
+"transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+"transforms.unwrap.delete.handling.mode": "rewrite",
+"drop.tombstones": "true"
+```
+`drop.tombstones` - keeps records for DELETE operations in the event stream.  I had to default to true otherwise errors yeet.
 
-`git checkout development`
-`git pull`
-    - this is to make sure that branch is fully up to date locally for you.
 
-`git checkout staging`
-`git pull`
-`git rebase master` - Rebases the CURRENT branch onto master
-`git push --force`
+# Redshift Sink
+deletes work as-is.
 
-`git checkout production`
-`git pull`
-`git rebase staging`
-`git push --force`
+adding a new column automatically works
 
-### deleting a branch locally + remotely
-`git push origin --delete test-branch`
+DELETING a column fucked shit up bc it sets everything to null and that's how it defines a "deleted" column or something, but in redshift if it's a data type of like int - that can't be null so it errored out.
+    - this likely doesnt matter bc when would be deleting a lot of cols?
 
-# NEW WORKFLOW
-1. git pull development
-2. create a new feature branch off of development
-3. add commits locally but don't push until youre ready
-4. when ready, squash and merge the last x commits with `git reset --soft HEAD~3` (if you made 3 commits)
-5. git push
-6. go in github and make your pull request
-7. merge with rebase & merge
-8. when ready, go merge development into staging.
-9. merge with rebase & merge.
-10. when ready, go merge staging into production.
-11. merge with rebase & merge.
-12. then locally do git pull on everything.
-13. and then do git checkout staging and run `git rebase production` and `git push -f`
-14. and then do git checkout development and run `git rebase production` and `git push -f`
+It adds a Primary key index into the schema as well for each table.
+
+![image](https://user-images.githubusercontent.com/16946556/197405330-a97f80a0-85e8-4f58-ae15-17a431a5460e.png)
+
+
+![image](https://user-images.githubusercontent.com/16946556/197406047-5d09728a-5af6-4999-8c5f-a12264cdf868.png)
+    - i can get inserts working, and deletes working, but updates on exisitng records show up as new records.
+    - can distinguish based on _offset but this is still not ideal.
+    - `insert.mode=update` worked, but then you cant do inserts.
+    - i saw some ppl creating 3 redshift sinks for insert, update, and insert with delete.enabled=true but that's sounds meh
+
+adding a new column doesn't get reflected in redshift until a new insert operation is executed.
+
+you'd have to do something like below on every single table to get the most recent record.
+
+```
+with latest_records as (
+    select
+        id,
+        max(_offset) as _offset
+    from table
+    group by id
+)
+
+select *
+from table
+inner join latest_records using (id, _offset)
+```
+
+# Snowflake Kafka Sink
+Worked but shit shows up as 2 JSON metadata columns instead of the normal table data columns.  this involves additional transformations to do anything with the data.  Snowflake offers features for this like Streams + Tasks but you're also paying for those compute resources and it introduces more complexity.
+
+S3 sink with Snowpipe set up is just about the same thing except the data actually gets loaded directly into the source tables which is the only reason we're streaming in the first place.
+
+have to set default role + default warehouse for this kafka_user.  also, you have to use 
+```
+ {
+		"connector.class": "com.snowflake.kafka.connector.SnowflakeSinkConnector",
+		"tasks.max": "1",
+		"topics": "second_movies,movies",
+        "snowflake.topic2table.map": "movies:movies,second_movies:second_movies",
+        "buffer.count.records":"10000",
+        "buffer.flush.time":"60",
+        "buffer.size.bytes":"5000000",
+        "snowflake.url.name":"yyy",
+        "snowflake.user.name":"aaa",
+        "snowflake.private.key":"zz",
+        "snowflake.private.key.passphrase":"yyyy",
+        "snowflake.database.name":"kafka_db",
+        "snowflake.schema.name":"kafka_schema",
+        "transforms": "AddMetadata",
+        "transforms.AddMetadata.type": "org.apache.kafka.connect.transforms.InsertField$Value",
+        "transforms.AddMetadata.offset.field": "_offset"
+	}
+```
+![image](https://user-images.githubusercontent.com/16946556/200147474-fd5ed40e-deb0-4038-80d0-123e00720e53.png)
+
+# Snowflake JDBC Sink
+- [Stackoverflow 1](https://stackoverflow.com/questions/69890973/kafka-jdbc-sink-connector-cant-find-tables-in-snowflake)
+- [Classpath Link](https://github.com/confluentinc/demo-scene/blob/ab824ce9f97952125518487a779753cb2549bac7/ibm-demo/docker-compose.yml)
+- [Classpath link 2](https://github.com/confluentinc/demo-scene/blob/master/connect-jdbc/docker-compose.yml)
+
+## IM SO CLOSE
+[Article 1](https://github.com/confluentinc/demo-scene/blob/master/oracle-and-kafka/jdbc-driver.adoc)
+[Vid](https://www.youtube.com/watch?v=vI_L9irU9Pc)
+[Stackoverflow of Connector](https://stackoverflow.com/questions/69890973/kafka-jdbc-sink-connector-cant-find-tables-in-snowflake)
+
+![image](https://user-images.githubusercontent.com/16946556/208001421-c09fa05a-ffe0-42c9-bbfa-12ccb4cecf52.png)
+
+![image](https://user-images.githubusercontent.com/16946556/208002405-26b11e92-3b8a-4f1a-95af-e2951f829baf.png)
+
+JDBC Sink works but it's painfully slow bc it's doing a million fkn merges at once, had to give ALL PRIVILEGES bc select + insert wasn't enough.  Still have to use OracleDatabaseDialect bc it's the only one that's compatible.  Things also got fkd up if there were 2 different tables with the same name but in different databses - it didnt care what schema + db you throw in the JDBC parameters.  
+
+Don't think it's a realistic solution.
+
+## JDBC Errors
+`Caused by: io.confluent.connect.jdbc.sink.TableAlterOrCreateException: Table "second_movies" is missing and auto-creation is disabled`
+`INFO Using Generic dialect TABLE "second_movies" absent (io.confluent.connect.jdbc.dialect.GenericDatabaseDialect)`
+`Caused by: io.confluent.connect.jdbc.sink.TableAlterOrCreateException: Table "kafka_db"."kafka_schema"."second_movies" is missing and auto-creation is disabl`
+
+basically auto.create fails bc this sink doesnt have official snowflake compatibility.
+insert only w/ no auto.create doesnt work either because of quote issue that i couldnt figure out.
+
+
+`Cannot ALTER TABLE "SECOND_MOVIES" to add missing field SinkRecordField{schema=Schema{STRING}, name='title', isPrimaryKey=false}, as the field is not optional and does not have a default value`
+
+# Tombstones
+- A tombstone record is created after a record is deleted, and it keeps the primary key and sets all other columns to null.
+- You can set `delete.handling.mode = rewrite` which adds a _deleted column to the tables, and when that record gets deleted an "update" event happens which sets this _deleted column to true so you can filter it out downstream later on.
+- If you leave tombstones on it breaks shit because certain columns aren't supposed to be null or maybe it's the schema registry that breaks it, i dont know.  so i have to set drop tombstones to true.
