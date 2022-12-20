@@ -9,3 +9,4 @@ scripts/snowflake_sinkz.sh
 *.pub
 *_snowpipe.sql
 kafka_user/
+zz
