@@ -1,2 +1,2 @@
 def repo_version():
-    print(f"Version: 0.0.2")
+    print(f"Version: 0.0.3")
